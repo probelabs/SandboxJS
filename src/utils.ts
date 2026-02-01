@@ -507,6 +507,7 @@ export const enum LispType {
   BitUnsignedShiftRight,
   BigInt,
   LiteralIndex,
+  NullishCoalescing,
   RegexIndex,
   LoopAction,
   Void,

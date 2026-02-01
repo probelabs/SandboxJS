@@ -227,11 +227,12 @@ export declare const enum LispType {
     BitUnsignedShiftRight = 82,
     BigInt = 83,
     LiteralIndex = 84,
-    RegexIndex = 85,
-    LoopAction = 86,
-    Void = 87,
-    True = 88,
-    LispEnumSize = 89
+    NullishCoalescing = 85,
+    RegexIndex = 86,
+    LoopAction = 87,
+    Void = 88,
+    True = 89,
+    LispEnumSize = 90
 }
 export declare class Prop {
     context: Unknown;

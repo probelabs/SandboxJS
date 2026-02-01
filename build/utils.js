@@ -262,7 +262,7 @@ export function isLisp(item) {
     return (Array.isArray(item) &&
         typeof item[0] === 'number' &&
         item[0] !== 0 /* LispType.None */ &&
-        item[0] !== 88 /* LispType.True */);
+        item[0] !== 89 /* LispType.True */);
 }
 export class Prop {
     constructor(context, prop, isConst = false, isGlobal = false, isVariable = false) {

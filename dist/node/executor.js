@@ -419,7 +419,7 @@ addOps(35 /* LispType.GlobalSymbol */, (exec, done, ticks, a, b) => {
 addOps(7 /* LispType.Number */, (exec, done, ticks, a, b) => done(undefined, Number(b)));
 addOps(83 /* LispType.BigInt */, (exec, done, ticks, a, b) => done(undefined, BigInt(b)));
 addOps(2 /* LispType.StringIndex */, (exec, done, ticks, a, b, obj, context) => done(undefined, context.constants.strings[parseInt(b)]));
-addOps(85 /* LispType.RegexIndex */, (exec, done, ticks, a, b, obj, context) => {
+addOps(86 /* LispType.RegexIndex */, (exec, done, ticks, a, b, obj, context) => {
     const reg = context.constants.regexes[parseInt(b)];
     if (!context.ctx.globalsWhitelist.has(RegExp)) {
         throw new utils.SandboxError('Regex not permitted');
@@ -544,6 +544,7 @@ addOps(53 /* LispType.NotEqual */, (exec, done, ticks, a, b) => done(undefined, 
 addOps(31 /* LispType.StrictNotEqual */, (exec, done, ticks, a, b) => done(undefined, a !== b));
 addOps(29 /* LispType.And */, (exec, done, ticks, a, b) => done(undefined, a && b));
 addOps(30 /* LispType.Or */, (exec, done, ticks, a, b) => done(undefined, a || b));
+addOps(85 /* LispType.NullishCoalescing */, (exec, done, ticks, a, b) => done(undefined, a ?? b));
 addOps(77 /* LispType.BitAnd */, (exec, done, ticks, a, b) => done(undefined, a & b));
 addOps(78 /* LispType.BitOr */, (exec, done, ticks, a, b) => done(undefined, a | b));
 addOps(33 /* LispType.Plus */, (exec, done, ticks, a, b) => done(undefined, a + b));
@@ -615,7 +616,7 @@ addOps(37 /* LispType.Function */, (exec, done, ticks, a, b, obj, context, scope
     const isAsync = a.shift();
     const name = a.shift();
     let func;
-    if (isAsync === 88 /* LispType.True */) {
+    if (isAsync === 89 /* LispType.True */) {
         func = createFunctionAsync(a, b, ticks, context, scope, name);
     }
     else {
@@ -641,7 +642,7 @@ addOps(10 /* LispType.InlineFunction */, (exec, done, ticks, a, b, obj, context,
         scope = new utils.Scope(scope, {});
     }
     let func;
-    if (isAsync === 88 /* LispType.True */) {
+    if (isAsync === 89 /* LispType.True */) {
         func = createFunctionAsync(a, b, ticks, context, scope, name);
     }
     else {
@@ -720,7 +721,7 @@ addOps(38 /* LispType.Loop */, (exec, done, ticks, a, b, obj, context, scope) =>
         done();
     }
 });
-addOps(86 /* LispType.LoopAction */, (exec, done, ticks, a, b, obj, context, scope, bobj, inLoopOrSwitch) => {
+addOps(87 /* LispType.LoopAction */, (exec, done, ticks, a, b, obj, context, scope, bobj, inLoopOrSwitch) => {
     if ((inLoopOrSwitch === 'switch' && a === 'continue') || !inLoopOrSwitch) {
         throw new utils.SandboxError('Illegal ' + a + ' statement');
     }
@@ -816,7 +817,7 @@ addOps(39 /* LispType.Try */, (exec, done, ticks, a, b, obj, context, scope, bob
         }, ticks, context, finallyBody, [new utils.Scope(scope, {})]);
     }, ticks, context, a, [new utils.Scope(scope)], inLoopOrSwitch);
 });
-addOps(87 /* LispType.Void */, (exec, done) => {
+addOps(88 /* LispType.Void */, (exec, done) => {
     done();
 });
 addOps(45 /* LispType.New */, (exec, done, ticks, a, b, obj, context) => {

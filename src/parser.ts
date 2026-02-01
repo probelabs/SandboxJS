@@ -54,6 +54,7 @@ export type DecrementAfter = DefineLisp<LispType.DecrementAfter, Lisp, LispType.
 
 export type And = DefineLisp<LispType.And, Lisp, Lisp>;
 export type Or = DefineLisp<LispType.Or, Lisp, Lisp>;
+export type NullishCoalescing = DefineLisp<LispType.NullishCoalescing, Lisp, Lisp>;
 export type Instanceof = DefineLisp<LispType.Instanceof, Lisp, Lisp>;
 export type In = DefineLisp<LispType.In, Lisp, Lisp>;
 export type Assigns = DefineLisp<LispType.Assign, Lisp, Lisp>;
@@ -153,6 +154,7 @@ export type LispFamily =
   | DecrementAfter
   | And
   | Or
+  | NullishCoalescing
   | Instanceof
   | In
   | Assigns
@@ -265,14 +267,14 @@ export const expectTypes = {
       opHigh: /^(\/|\*\*|\*(?!\*)|%)(?!=)/,
       op: /^(\+(?!(\+))|-(?!(-)))(?!=)/,
       comparitor: /^(<=|>=|<(?!<)|>(?!>)|!==|!=(?!=)|===|==)/,
-      boolOp: /^(&&|\|\||instanceof(?![\w$])|in(?![\w$]))/,
+      boolOp: /^(&&|\|\||\?\?|instanceof(?![\w$])|in(?![\w$]))/,
       bitwise: /^(&(?!&)|\|(?!\|)|\^|<<|>>(?!>)|>>>)(?!=)/,
     },
     next: ['modifier', 'value', 'prop', 'incrementerBefore'],
   },
   inlineIf: {
     types: {
-      inlineIf: /^\?(?!\.(?!\d))/,
+      inlineIf: /^\?(?!\?|\.(?!\d))/,
     },
     next: ['expEnd'],
   },
@@ -753,6 +755,7 @@ setLispType(['incrementerAfter'] as const, (constants, type, part, res, expect, 
 const adderTypes = {
   '&&': LispType.And,
   '||': LispType.Or,
+  '??': LispType.NullishCoalescing,
   instanceof: LispType.Instanceof,
   in: LispType.In,
   '=': LispType.Assign,
@@ -776,6 +779,7 @@ setLispType(
     ctx.lispTree = createLisp<
       | And
       | Or
+      | NullishCoalescing
       | Instanceof
       | In
       | Assigns

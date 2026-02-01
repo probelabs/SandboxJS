@@ -26,14 +26,14 @@ export const expectTypes = {
             opHigh: /^(\/|\*\*|\*(?!\*)|%)(?!=)/,
             op: /^(\+(?!(\+))|-(?!(-)))(?!=)/,
             comparitor: /^(<=|>=|<(?!<)|>(?!>)|!==|!=(?!=)|===|==)/,
-            boolOp: /^(&&|\|\||instanceof(?![\w$])|in(?![\w$]))/,
+            boolOp: /^(&&|\|\||\?\?|instanceof(?![\w$])|in(?![\w$]))/,
             bitwise: /^(&(?!&)|\|(?!\|)|\^|<<|>>(?!>)|>>>)(?!=)/,
         },
         next: ['modifier', 'value', 'prop', 'incrementerBefore'],
     },
     inlineIf: {
         types: {
-            inlineIf: /^\?(?!\.(?!\d))/,
+            inlineIf: /^\?(?!\?|\.(?!\d))/,
         },
         next: ['expEnd'],
     },
@@ -459,6 +459,7 @@ setLispType(['incrementerAfter'], (constants, type, part, res, expect, ctx) => {
 const adderTypes = {
     '&&': 29 /* LispType.And */,
     '||': 30 /* LispType.Or */,
+    '??': 85 /* LispType.NullishCoalescing */,
     instanceof: 62 /* LispType.Instanceof */,
     in: 63 /* LispType.In */,
     '=': 9 /* LispType.Assign */,
@@ -733,7 +734,7 @@ setLispType(['string', 'literal', 'regex'], (constants, type, part, res, expect,
             ? 2 /* LispType.StringIndex */
             : type === 'literal'
                 ? 84 /* LispType.LiteralIndex */
-                : 85 /* LispType.RegexIndex */,
+                : 86 /* LispType.RegexIndex */,
         a: 0 /* LispType.None */,
         b: res[1],
     }));
@@ -759,7 +760,7 @@ setLispType(['function', 'inlineFunction', 'arrowFunction', 'arrowFunctionSingle
     const isArrow = type !== 'function' && type !== 'inlineFunction';
     const isReturn = isArrow && !res[res.length - 1];
     const argPos = isArrow ? 2 : 3;
-    const isAsync = res[1] ? 88 /* LispType.True */ : 0 /* LispType.None */;
+    const isAsync = res[1] ? 89 /* LispType.True */ : 0 /* LispType.None */;
     const args = res[argPos] ? res[argPos].replace(/\s+/g, '').split(/,/g) : [];
     if (!isArrow) {
         args.unshift((res[2] || '').trimStart());
@@ -786,13 +787,13 @@ setLispType(['function', 'inlineFunction', 'arrowFunction', 'arrowFunctionSingle
 const iteratorRegex = /^((let|var|const)\s+)?\s*([a-zA-Z$_][a-zA-Z\d$_]*)\s+(in|of)(?![\w$])/;
 setLispType(['for', 'do', 'while'], (constants, type, part, res, expect, ctx) => {
     let i = 0;
-    let startStep = 88 /* LispType.True */;
+    let startStep = 89 /* LispType.True */;
     let startInternal = [];
     let getIterator = 0 /* LispType.None */;
     let beforeStep = 0 /* LispType.None */;
-    let checkFirst = 88 /* LispType.True */;
+    let checkFirst = 89 /* LispType.True */;
     let condition;
-    let step = 88 /* LispType.True */;
+    let step = 89 /* LispType.True */;
     let body;
     switch (type) {
         case 'while': {
@@ -877,7 +878,7 @@ setLispType(['block'], (constants, type, part, res, expect, ctx) => {
 });
 setLispType(['loopAction'], (constants, type, part, res, expect, ctx) => {
     ctx.lispTree = createLisp({
-        op: 86 /* LispType.LoopAction */,
+        op: 87 /* LispType.LoopAction */,
         a: res[1],
         b: 0 /* LispType.None */,
     });
@@ -917,7 +918,7 @@ setLispType(['try'], (constants, type, part, res, expect, ctx) => {
 setLispType(['void', 'await'], (constants, type, part, res, expect, ctx) => {
     const extract = restOfExp(constants, part.substring(res[0].length), [/^([^\s.?\w$]|\?[^.])/]);
     ctx.lispTree = lispify(constants, part.substring(res[0].length + extract.length), expectTypes[expect].next, createLisp({
-        op: type === 'void' ? 87 /* LispType.Void */ : 44 /* LispType.Await */,
+        op: type === 'void' ? 88 /* LispType.Void */ : 44 /* LispType.Await */,
         a: lispify(constants, extract),
         b: 0 /* LispType.None */,
     }));
