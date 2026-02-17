@@ -21,13 +21,25 @@
   },
   {
     "code": "[test2, 2]",
-    "evalExpect": [1, 2],
-    "safeExpect": [1, 2]
+    "evalExpect": [
+      1,
+      2
+    ],
+    "safeExpect": [
+      1,
+      2
+    ]
   },
   {
     "code": "{\"aa\": test[0](), b: test2 * 3}",
-    "evalExpect": { "aa": 1, "b": 3 },
-    "safeExpect": { "aa": 1, "b": 3 }
+    "evalExpect": {
+      "aa": 1,
+      "b": 3
+    },
+    "safeExpect": {
+      "aa": 1,
+      "b": 3
+    }
   },
   {
     "code": "test.b = test2 - test[0]() - test[0]()",
@@ -51,8 +63,8 @@
   },
   {
     "code": "2.2204460492503130808472633361816E-16",
-    "evalExpect": 2.2204460492503130808472633361816e-16,
-    "safeExpect": 2.2204460492503130808472633361816e-16
+    "evalExpect": 2.220446049250313e-16,
+    "safeExpect": 2.220446049250313e-16
   },
   {
     "code": "test[test2] ? true : false ? 'not ok' : 'ok'",
@@ -81,8 +93,12 @@
   },
   {
     "code": "{\"\\\\\":\"\\\\\"}",
-    "evalExpect": { "\\": "\\" },
-    "safeExpect": { "\\": "\\" }
+    "evalExpect": {
+      "\\": "\\"
+    },
+    "safeExpect": {
+      "\\": "\\"
+    }
   },
   {
     "code": "`\\\\$$\\${${`\\\\\\`${'ok'}`}\\\\}`",
@@ -91,8 +107,22 @@
   },
   {
     "code": "[\"\\\\\", \"\\xd9\", \"\\n\", \"\\r\", \"\\u2028\", \"\\u2029\"]",
-    "evalExpect": ["\\", "Ù", "\n", "\r", "\u2028", "\u2029"],
-    "safeExpect": ["\\", "Ù", "\n", "\r", "\u2028", "\u2029"]
+    "evalExpect": [
+      "\\",
+      "\u00d9",
+      "\n",
+      "\r",
+      "\u2028",
+      "\u2029"
+    ],
+    "safeExpect": [
+      "\\",
+      "\u00d9",
+      "\n",
+      "\r",
+      "\u2028",
+      "\u2029"
+    ]
   },
   {
     "code": "bypassed=1",
@@ -217,8 +247,12 @@
   },
   {
     "code": "Object.keys({a:1})",
-    "evalExpect": ["a"],
-    "safeExpect": ["a"]
+    "evalExpect": [
+      "a"
+    ],
+    "safeExpect": [
+      "a"
+    ]
   },
   {
     "code": "Object.assign(Object, {}) || 'ok'",
@@ -482,8 +516,24 @@
   },
   {
     "code": "[1, ...[2, [test2, 4]], 5]",
-    "evalExpect": [1, 2, [3, 4], 5],
-    "safeExpect": [1, 2, [3, 4], 5]
+    "evalExpect": [
+      1,
+      2,
+      [
+        3,
+        4
+      ],
+      5
+    ],
+    "safeExpect": [
+      1,
+      2,
+      [
+        3,
+        4
+      ],
+      5
+    ]
   },
   {
     "code": "let a = null; let b = [a?.a]; return b[0] === undefined && b.length",
@@ -492,13 +542,33 @@
   },
   {
     "code": "{a: 1, ...{b: 2, c: {d: test2,}}, e: 5}",
-    "evalExpect": { "a": 1, "b": 2, "c": { "d": 3 }, "e": 5 },
-    "safeExpect": { "a": 1, "b": 2, "c": { "d": 3 }, "e": 5 }
+    "evalExpect": {
+      "a": 1,
+      "b": 2,
+      "c": {
+        "d": 3
+      },
+      "e": 5
+    },
+    "safeExpect": {
+      "a": 1,
+      "b": 2,
+      "c": {
+        "d": 3
+      },
+      "e": 5
+    }
   },
   {
     "code": "{a: 1,b: 2, /*,*/}",
-    "evalExpect": { "a": 1, "b": 2 },
-    "safeExpect": { "a": 1, "b": 2 }
+    "evalExpect": {
+      "a": 1,
+      "b": 2
+    },
+    "safeExpect": {
+      "a": 1,
+      "b": 2
+    }
   },
   {
     "code": "'a' in {a: 1}",
@@ -562,8 +632,14 @@
   },
   {
     "code": "let list = [0, 1]; return list.sort((a, b) => (a < b) ? 1 : -1)",
-    "evalExpect": [1, 0],
-    "safeExpect": [1, 0]
+    "evalExpect": [
+      1,
+      0
+    ],
+    "safeExpect": [
+      1,
+      0
+    ]
   },
   {
     "code": "let y = {a: 1, b(x) {return this.a + x}}; return y.b(2)",
@@ -577,8 +653,12 @@
   },
   {
     "code": "[0,1].filter((...args) => args[1])",
-    "evalExpect": [1],
-    "safeExpect": [1]
+    "evalExpect": [
+      1
+    ],
+    "safeExpect": [
+      1
+    ]
   },
   {
     "code": "Math.pow(...[2, 2])",
@@ -634,6 +714,39 @@
     "code": "for(let i in [1,2]){ return i };",
     "evalExpect": "0",
     "safeExpect": "0"
+  },
+  {
+    "code": "let result = \"\"; for(let c of \"abc\"){ result = result + c }; return result;",
+    "evalExpect": "abc",
+    "safeExpect": "abc"
+  },
+  {
+    "code": "let s = new Set([1,2,3]); let result = 0; for(let i of s){ result = result + i }; return result;",
+    "evalExpect": 6,
+    "safeExpect": 6
+  },
+  {
+    "code": "let m = new Map([[\"a\",1],[\"b\",2]]); let result = []; for(let e of m){ result.push(e) }; return result;",
+    "evalExpect": [
+      [
+        "a",
+        1
+      ],
+      [
+        "b",
+        2
+      ]
+    ],
+    "safeExpect": [
+      [
+        "a",
+        1
+      ],
+      [
+        "b",
+        2
+      ]
+    ]
   },
   {
     "code": "const a = () => {return 1}; const b = () => {return 2}; return (() => a() + b())()",
@@ -811,8 +924,20 @@
   },
   {
     "code": "function LinkedListNode(e){this.value=e,this.next=null}function reverse(e){let n,t,r=e;for(;r;)t=r.next,r.next=n,n=r,r=t;return n}function reverse(e){if(!e||!e.next)return e;let n=reverse(e.next);return e.next.next=e,e.next=null,n} let l1 = new LinkedListNode(1); l1.next = new LinkedListNode(2); return reverse(l1);",
-    "evalExpect": { "value": 2, "next": { "value": 1, "next": null } },
-    "safeExpect": { "value": 2, "next": { "value": 1, "next": null } }
+    "evalExpect": {
+      "value": 2,
+      "next": {
+        "value": 1,
+        "next": null
+      }
+    },
+    "safeExpect": {
+      "value": 2,
+      "next": {
+        "value": 1,
+        "next": null
+      }
+    }
   },
   {
     "code": "let c = 0; for (let i = 0; i < 10; i++) {c++} return c",

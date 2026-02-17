@@ -131,7 +131,11 @@ export function createContext(sandbox: SandboxExec, options: IOptions): IContext
     globalScope: new Scope(null, options.globals, sandboxGlobal),
     sandboxGlobal,
   };
+  // Whitelist iterator prototypes so for...of works on all built-in iterables
   context.prototypeWhitelist.set(Object.getPrototypeOf([][Symbol.iterator]()) as Object, new Set());
+  context.prototypeWhitelist.set(Object.getPrototypeOf(''[Symbol.iterator]()) as Object, new Set());
+  context.prototypeWhitelist.set(Object.getPrototypeOf(new Set()[Symbol.iterator]()) as Object, new Set());
+  context.prototypeWhitelist.set(Object.getPrototypeOf(new Map()[Symbol.iterator]()) as Object, new Set());
   return context;
 }
 
