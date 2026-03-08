@@ -1281,6 +1281,19 @@ export async function execAsync<T = any>(
         a = undefined;
       }
     }
+    // Short-circuit evaluation for logical operators (async path)
+    if (op === LispType.And && !a) {
+      done(undefined, a);
+      return;
+    }
+    if (op === LispType.Or && a) {
+      done(undefined, a);
+      return;
+    }
+    if (op === LispType.NullishCoalescing && a !== null && a !== undefined) {
+      done(undefined, a);
+      return;
+    }
     let bobj;
     try {
       let ad: AsyncDoneRet;
@@ -1354,6 +1367,22 @@ export function execSync<T = any>(
       } else {
         a = undefined;
       }
+    }
+    // Short-circuit evaluation for logical operators: do not evaluate the
+    // right-hand side when the left-hand side already determines the result.
+    // This matches standard JavaScript semantics where `false && expr` and
+    // `true || expr` skip evaluating `expr`.
+    if (op === LispType.And && !a) {
+      done(undefined, a);
+      return;
+    }
+    if (op === LispType.Or && a) {
+      done(undefined, a);
+      return;
+    }
+    if (op === LispType.NullishCoalescing && a !== null && a !== undefined) {
+      done(undefined, a);
+      return;
     }
     let bobj;
     try {

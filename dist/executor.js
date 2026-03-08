@@ -973,6 +973,19 @@ async function execAsync(ticks, tree, scope, context, doneOriginal, inLoopOrSwit
                 a = undefined;
             }
         }
+        // Short-circuit evaluation for logical operators (async path)
+        if (op === 29 /* LispType.And */ && !a) {
+            done(undefined, a);
+            return;
+        }
+        if (op === 30 /* LispType.Or */ && a) {
+            done(undefined, a);
+            return;
+        }
+        if (op === 85 /* LispType.NullishCoalescing */ && a !== null && a !== undefined) {
+            done(undefined, a);
+            return;
+        }
         let bobj;
         try {
             let ad;
@@ -1045,6 +1058,22 @@ function execSync(ticks, tree, scope, context, done, inLoopOrSwitch) {
             else {
                 a = undefined;
             }
+        }
+        // Short-circuit evaluation for logical operators: do not evaluate the
+        // right-hand side when the left-hand side already determines the result.
+        // This matches standard JavaScript semantics where `false && expr` and
+        // `true || expr` skip evaluating `expr`.
+        if (op === 29 /* LispType.And */ && !a) {
+            done(undefined, a);
+            return;
+        }
+        if (op === 30 /* LispType.Or */ && a) {
+            done(undefined, a);
+            return;
+        }
+        if (op === 85 /* LispType.NullishCoalescing */ && a !== null && a !== undefined) {
+            done(undefined, a);
+            return;
         }
         let bobj;
         try {
