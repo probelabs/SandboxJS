@@ -804,17 +804,50 @@ addOps(40 /* LispType.Switch */, (exec, done, ticks, a, b, obj, context, scope) 
 });
 addOps(39 /* LispType.Try */, (exec, done, ticks, a, b, obj, context, scope, bobj, inLoopOrSwitch) => {
     const [exception, catchBody, finallyBody] = b;
-    executeTreeWithDone(exec, (err, res) => {
-        executeTreeWithDone(exec, (e) => {
-            if (e)
-                done(e);
-            else if (err) {
-                executeTreeWithDone(exec, done, ticks, context, catchBody, [new utils.Scope(scope)], inLoopOrSwitch);
+    // Step 1: Execute the try body
+    executeTreeWithDone(exec, (tryErr, tryRes) => {
+        // afterTryCatch is called after the try body (and possibly the catch body)
+        // have finished. It runs the finally body, then signals completion.
+        const afterTryCatch = (resultErr, resultRes) => {
+            executeTreeWithDone(exec, (finallyErr) => {
+                if (finallyErr)
+                    done(finallyErr);
+                else if (resultErr)
+                    done(resultErr);
+                else if (resultRes instanceof ExecReturn &&
+                    (resultRes.returned || resultRes.breakLoop || resultRes.continueLoop)) {
+                    done(undefined, resultRes);
+                }
+                else {
+                    done();
+                }
+            }, ticks, context, finallyBody, [new utils.Scope(scope, {})]);
+        };
+        if (tryErr) {
+            // Step 2: Error in try body — execute catch body
+            if (catchBody) {
+                const sc = {};
+                if (exception)
+                    sc[exception] = tryErr;
+                executeTreeWithDone(exec, (catchErr, catchRes) => {
+                    if (catchErr) {
+                        // Catch body threw — propagate through finally
+                        afterTryCatch(catchErr, undefined);
+                    }
+                    else {
+                        afterTryCatch(undefined, catchRes);
+                    }
+                }, ticks, context, catchBody, [new utils.Scope(scope, sc)], inLoopOrSwitch);
             }
             else {
-                done(undefined, res);
+                // No catch body — propagate the error through finally
+                afterTryCatch(tryErr, undefined);
             }
-        }, ticks, context, finallyBody, [new utils.Scope(scope, {})]);
+        }
+        else {
+            // Step 3: Try body succeeded — run finally
+            afterTryCatch(undefined, tryRes);
+        }
     }, ticks, context, a, [new utils.Scope(scope)], inLoopOrSwitch);
 });
 addOps(88 /* LispType.Void */, (exec, done) => {

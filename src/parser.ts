@@ -1314,7 +1314,7 @@ setLispType(['try'] as const, (constants, type, part, res, expect, ctx) => {
   let offset = 0;
   if (catchRes![1].startsWith('catch')) {
     catchRes = catchReg.exec(part.substring(res[0].length + body.length + 1).toString());
-    exception = catchRes![2];
+    exception = catchRes![3] || '';
     catchBody = restOfExp(
       constants,
       part.substring(res[0].length + body.length + 1 + catchRes![0].length),
@@ -1338,7 +1338,9 @@ setLispType(['try'] as const, (constants, type, part, res, expect, ctx) => {
   }
   const b = [
     exception,
-    lispifyBlock(insertSemicolons(constants, catchBody || emptyString), constants),
+    catchBody !== undefined
+      ? lispifyBlock(insertSemicolons(constants, catchBody || emptyString), constants)
+      : null,
     lispifyBlock(insertSemicolons(constants, finallyBody || emptyString), constants),
   ] as LispItem;
   ctx.lispTree = createLisp<Try>({

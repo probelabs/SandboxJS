@@ -1032,7 +1032,7 @@ addOps(
     done,
     ticks,
     a: Lisp[],
-    b: [string, Lisp[], Lisp[]],
+    b: [string, Lisp[] | null, Lisp[]],
     obj,
     context,
     scope,
@@ -1040,34 +1040,71 @@ addOps(
     inLoopOrSwitch
   ) => {
     const [exception, catchBody, finallyBody] = b;
+    // Unwrap ExecReturn so that a normal (non-return/break/continue) completion
+    // from the try or catch body does not short-circuit the parent statement list.
+    const unwrapDone: Done = (err, res) => {
+      if (res instanceof ExecReturn && (res.returned || res.breakLoop || res.continueLoop)) {
+        done(err, res);
+      } else {
+        done(err);
+      }
+    };
+    // Step 1: Execute the try body
     executeTreeWithDone(
       exec,
-      (err, res) => {
-        executeTreeWithDone(
-          exec,
-          (e) => {
-            if (e) done(e);
-            else if (err) {
-              const sc: Record<string, unknown> = {};
-              if (exception) sc[exception] = err;
-              executeTreeWithDone(
-                exec,
-                done,
-                ticks,
-                context,
-                catchBody,
-                [new Scope(scope)],
-                inLoopOrSwitch
-              );
-            } else {
-              done(undefined, res);
-            }
-          },
-          ticks,
-          context,
-          finallyBody,
-          [new Scope(scope, {})]
-        );
+      (tryErr, tryRes) => {
+        // afterTryCatch is called after the try body (and possibly the catch body)
+        // have finished. It runs the finally body, then signals completion.
+        const afterTryCatch = (resultErr: unknown, resultRes: unknown) => {
+          executeTreeWithDone(
+            exec,
+            (finallyErr) => {
+              if (finallyErr) done(finallyErr);
+              else if (resultErr) done(resultErr);
+              else if (
+                resultRes instanceof ExecReturn &&
+                (resultRes.returned || resultRes.breakLoop || resultRes.continueLoop)
+              ) {
+                done(undefined, resultRes);
+              } else {
+                done();
+              }
+            },
+            ticks,
+            context,
+            finallyBody,
+            [new Scope(scope, {})]
+          );
+        };
+        if (tryErr) {
+          // Step 2: Error in try body — execute catch body
+          if (catchBody) {
+            const sc: Record<string, unknown> = {};
+            if (exception) sc[exception] = tryErr;
+            executeTreeWithDone(
+              exec,
+              (catchErr, catchRes) => {
+                if (catchErr) {
+                  // Catch body threw — propagate through finally
+                  afterTryCatch(catchErr, undefined);
+                } else {
+                  afterTryCatch(undefined, catchRes);
+                }
+              },
+              ticks,
+              context,
+              catchBody,
+              [new Scope(scope, sc)],
+              inLoopOrSwitch
+            );
+          } else {
+            // No catch body — propagate the error through finally
+            afterTryCatch(tryErr, undefined);
+          }
+        } else {
+          // Step 3: Try body succeeded — run finally
+          afterTryCatch(undefined, tryRes);
+        }
       },
       ticks,
       context,
